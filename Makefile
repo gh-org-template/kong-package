@@ -1,5 +1,4 @@
 ARCHITECTURE ?= x86_64
-OSTYPE ?= linux-gnu
 DOCKER_TARGET ?= build
 DOCKER_REGISTRY ?= ghcr.io
 DOCKER_IMAGE_NAME ?= kong-package
@@ -7,12 +6,35 @@ DOCKER_IMAGE_TAG ?= $(DOCKER_TARGET)-$(ARCHITECTURE)-$(OSTYPE)
 DOCKER_NAME ?= $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 DOCKER_RESULT ?= --load
 
-PACKAGE_TYPE ?= deb
 OPERATING_SYSTEM ?= ubuntu
+
+ifeq ($(OPERATING_SYSTEM),alpine)
+	OSTYPE?=linux-musl
+else
+	OSTYPE?=linux-gnu
+endif
+
+ifeq ($(OPERATING_SYSTEM),rhel)
+	PACKAGE_TYPE=rpm
+else ifeq ($(OPERATING_SYSTEM),amazonlinux)
+	PACKAGE_TYPE=rpm
+else ifeq ($(OPERATING_SYSTEM),alpine)
+	PACKAGE_TYPE=apk
+else
+	PACKAGE_TYPE=deb
+endif
+
+ifeq ($(ARCHITECTURE),aarch64)
+	DOCKER_ARCHITECTURE=arm64
+else
+	DOCKER_ARCHITECTURE=amd64
+endif
 
 clean:
 	rm -rf package
 	docker rmi $(DOCKER_NAME)
+	-docker kill docker kill package-validation-tests
+	-docker kill systemd
 
 docker:
 	docker buildx build \
@@ -32,8 +54,13 @@ build/docker:
 	docker inspect --format='{{.Config.Image}}' $(DOCKER_NAME) || \
 	$(MAKE) DOCKER_TARGET=build docker
 
-build/package: build/docker
+package: build/docker
 	$(MAKE) DOCKER_TARGET=package DOCKER_RESULT="-o package" docker
+
+package/test:
+	PACKAGE_TYPE=$(PACKAGE_TYPE) \
+	DOCKER_ARCHITECTURE=$(DOCKER_ARCHITECTURE) \
+	/bin/bash ./test-package.sh
 
 .PHONY: init
 init:

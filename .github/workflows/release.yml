@@ -41,7 +41,7 @@
       strategy:
         matrix:
           architecture: [{cpu: x86_64, docker: amd64}, {cpu: aarch64, docker: arm64}]
-          os: [{os: ubuntu, version: rolling, ostype: linux-gnu}, {os: ubuntu, version: 16.04, ostype: linux-gnu}]
+          os: [{os: ubuntu, version: rolling, ostype: linux-gnu}, {os: ubuntu, version: 22.04, ostype: linux-gnu}]
       runs-on: ubuntu-latest
       steps:
       - uses: actions/create-github-app-token@v1
@@ -58,15 +58,15 @@
       - uses: docker/setup-buildx-action@v3
       - name: Set environment variables
         run: |
-          DOCKER_NAME=version make build/docker
           grep -v '^#' .env >> $GITHUB_ENV
           echo "ARCHITECTURE=${{ matrix.architecture.cpu }}" >> $GITHUB_ENV
           echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
-          echo "OSTYPE=${{ matrix.os.ostype }}" >> $GITHUB_ENV
           echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
           echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
       - name: Build and Package
-        run: make build/package
+        run: make package
+      - name: Test the Package
+        run: make package/test
       - name: Add Release Artifact to the Github Release
         if: ${{ needs.release.outputs.published == 'true' }}
         uses: softprops/action-gh-release@v2
