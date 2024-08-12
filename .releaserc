@@ -1,7 +1,7 @@
 {
   "branches": ["main"],
   "tagFormat": "${version}",
-  "repositoryUrl": "https://github.com/gh-org-template/template-1-github-release.git",
+  "repositoryUrl": "https://github.com/gh-org-template/kong-package.git",
   "plugins": [
     [
       "@semantic-release/commit-analyzer",

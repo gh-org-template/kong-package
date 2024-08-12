@@ -76,7 +76,7 @@
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/gh-org-template/template-1-github-release
+          images: ghcr.io/gh-org-template/kong-package
           sep-tags: ' '
           flavor: |
             suffix=-${{ matrix.architecture }}-${{ matrix.ostype }}
@@ -90,7 +90,7 @@
         if: ${{ needs.release.outputs.published == 'true' }}
         run: |
           for tag in ${{ steps.meta.outputs.tags }}; do \
-            docker tag ghcr.io/template-1-github-release:build-$ARCHITECTURE-$OSTYPE $tag && \
+            docker tag ghcr.io/kong-package:build-$ARCHITECTURE-$OSTYPE $tag && \
             docker push $tag; \
           done
       - name: Archive the package
@@ -122,12 +122,12 @@
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Combine per architecture images into a single multi-arch manifest
         run: |
-          docker pull ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-aarch64-${{ matrix.ostype }}
-          docker pull ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-x86_64-${{ matrix.ostype }}
-          docker manifest create ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-${{ matrix.ostype }} \
-            ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-aarch64-${{ matrix.ostype }} \
-            ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-x86_64-${{ matrix.ostype }}
-          docker manifest push ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-${{ matrix.ostype }}
+          docker pull ghcr.io/gh-org-template/kong-package:${{ needs.release.outputs.release-git-tag }}-aarch64-${{ matrix.ostype }}
+          docker pull ghcr.io/gh-org-template/kong-package:${{ needs.release.outputs.release-git-tag }}-x86_64-${{ matrix.ostype }}
+          docker manifest create ghcr.io/gh-org-template/kong-package:${{ needs.release.outputs.release-git-tag }}-${{ matrix.ostype }} \
+            ghcr.io/gh-org-template/kong-package:${{ needs.release.outputs.release-git-tag }}-aarch64-${{ matrix.ostype }} \
+            ghcr.io/gh-org-template/kong-package:${{ needs.release.outputs.release-git-tag }}-x86_64-${{ matrix.ostype }}
+          docker manifest push ghcr.io/gh-org-template/kong-package:${{ needs.release.outputs.release-git-tag }}-${{ matrix.ostype }}
 
     done:
       needs: [artifacts]
