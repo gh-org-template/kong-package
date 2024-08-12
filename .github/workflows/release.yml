@@ -1,0 +1,138 @@
+---
+  name: Release
+
+  on:
+    pull_request:
+    push:
+      branches:
+      - main
+
+  concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+  jobs:
+    release:
+      name: Create Release
+      runs-on: ubuntu-latest
+      outputs:
+        published: ${{ steps.release.outputs.published }}
+        release-git-tag: ${{ steps.release.outputs.release-git-tag }}
+      steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ steps.app-token.outputs.token }}
+      - name: Release
+        id: release
+        uses: ahmadnassri/action-semantic-release@v2.2.8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    artifacts:
+      needs: release
+      name: Create Release Artifacts
+      strategy:
+        matrix:
+          architecture: [aarch64, x86_64]
+          ostype: [linux-gnu, linux-musl]
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ steps.app-token.outputs.token }}
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Set environment variables
+        run: |
+          grep -v '^#' .env >> $GITHUB_ENV
+          echo "ARCHITECTURE=${{ matrix.architecture }}" >> $GITHUB_ENV
+          echo "OSTYPE=${{ matrix.ostype }}" >> $GITHUB_ENV
+          echo "REGISTRY=ghcr.io"
+      - name: Build and Package
+        run: make build/package
+      - name: Log in to the Container registry
+        if: ${{ needs.release.outputs.published == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        if: ${{ needs.release.outputs.published == 'true' }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/gh-org-template/template-1-github-release
+          sep-tags: ' '
+          flavor: |
+            suffix=-${{ matrix.architecture }}-${{ matrix.ostype }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=semver,pattern={{version}},value=${{ needs.release.outputs.release-git-tag }}
+            type=semver,pattern={{major}},value=${{ needs.release.outputs.release-git-tag }}
+            type=raw,value=${{ env.OPENSSL_VERSION }}
+      - name: Retag and Push
+        if: ${{ needs.release.outputs.published == 'true' }}
+        run: |
+          for tag in ${{ steps.meta.outputs.tags }}; do \
+            docker tag ghcr.io/template-1-github-release:build-$ARCHITECTURE-$OSTYPE $tag && \
+            docker push $tag; \
+          done
+      - name: Archive the package
+        if: ${{ needs.release.outputs.published == 'true' }}
+        run: |
+          tar -C package -czvf ${{ matrix.architecture }}-${{ matrix.ostype }}.tar.gz .
+      - name: Add Release Artifact to the Github Release
+        if: ${{ needs.release.outputs.published == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release.outputs.release-git-tag }}
+          files: ${{ matrix.architecture }}-${{ matrix.ostype }}.tar.gz
+
+    multi-arch:
+      needs: [release, artifacts]
+      name: Create Release Artifacts
+      if: ${{ needs.release.outputs.published == 'true' }}
+      strategy:
+        matrix:
+          ostype: [linux-gnu, linux-musl]
+      runs-on: ubuntu-latest
+      steps:
+      - name: Log in to the Container registry
+        if: ${{ needs.release.outputs.published == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Combine per architecture images into a single multi-arch manifest
+        run: |
+          docker pull ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-aarch64-${{ matrix.ostype }}
+          docker pull ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-x86_64-${{ matrix.ostype }}
+          docker manifest create ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-${{ matrix.ostype }} \
+            ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-aarch64-${{ matrix.ostype }} \
+            ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-x86_64-${{ matrix.ostype }}
+          docker manifest push ghcr.io/gh-org-template/template-1-github-release:${{ needs.release.outputs.release-git-tag }}-${{ matrix.ostype }}
+
+    done:
+      needs: [artifacts]
+      name: Done
+      if: needs.artifacts.result == 'success'
+      runs-on: ubuntu-latest
+      steps:
+      - run: echo 'done'
