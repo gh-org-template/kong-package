@@ -2,22 +2,13 @@ ARG OSTYPE
 ARG ARCHITECTURE
 ARG DOCKER_REGISTRY=ghcr.io
 ARG DOCKER_IMAGE_NAME
+ARG DOCKER_ARCHITECTURE
 
 # List out all image permutations to trick dependabot
-FROM --platform=linux/amd64 ghcr.io/gh-org-template/kong-development:1.0.0-x86_64-linux-musl AS x86_64-linux-musl
-FROM --platform=linux/amd64 ghcr.io/gh-org-template/kong-development:1.0.0-x86_64-linux-gnu AS x86_64-linux-gnu
-FROM --platform=linux/arm64 ghcr.io/gh-org-template/kong-development:1.0.0-x86_64-linux-musl AS aarch64-linux-musl
-FROM --platform=linux/arm64 ghcr.io/gh-org-template/kong-development:1.0.0-x86_64-linux-gnu AS aarch64-linux-gnu
-
-# Run the build script
-FROM $ARCHITECTURE-$OSTYPE AS build
+FROM --platform=linux/${DOCKER_ARCHITECTURE} ghcr.io/gh-org-template/kong-development:1.0.0-${ARCHITECTURE}-${OSTYPE} AS build
 RUN ./grep-kong-version.sh > /tmp/kong-version
 
-FROM --platform=linux/amd64 ghcr.io/gh-org-template/multi-arch-fpm:1.0.1 AS x86_64-fpm
-FROM --platform=linux/arm64 ghcr.io/gh-org-template/multi-arch-fpm:1.0.1 AS aarch64-fpm
-
-FROM $ARCHITECTURE-fpm AS fpm
-
+FROM --platform=linux/${DOCKER_ARCHITECTURE} ghcr.io/gh-org-template/multi-arch-fpm:1.0.1 AS fpm
 COPY --from=build /tmp/kong-version /tmp/kong-version
 COPY --from=build /tmp/build /tmp/build
 COPY /fpm /fpm
