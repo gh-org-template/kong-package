@@ -3,12 +3,18 @@ ARG ARCHITECTURE
 ARG DOCKER_REGISTRY=ghcr.io
 ARG DOCKER_IMAGE_NAME
 ARG DOCKER_ARCHITECTURE
+ARG KONG_DEVELOPMENT_VERSION=1.1.0
+ARG FPM_VERSION=1.1.0
 
 # List out all image permutations to trick dependabot
-FROM --platform=linux/${DOCKER_ARCHITECTURE} ghcr.io/gh-org-template/kong-development:1.0.0-${ARCHITECTURE}-${OSTYPE} AS build
+FROM --platform=linux/${DOCKER_ARCHITECTURE} ghcr.io/gh-org-template/kong-development:${KONG_DEVELOPMENT_VERSION}-${ARCHITECTURE}-${OSTYPE} AS build
 RUN ./grep-kong-version.sh > /tmp/kong-version
 
-FROM --platform=linux/${DOCKER_ARCHITECTURE} ghcr.io/gh-org-template/multi-arch-fpm:1.0.1 AS fpm
+RUN /test/kong-openssl/test.sh && \
+    /test/kong-runtime/test.sh && \
+    /test/kong-development/test.sh
+
+FROM --platform=linux/${DOCKER_ARCHITECTURE} ghcr.io/gh-org-template/multi-arch-fpm:${FPM_VERSION} AS fpm
 COPY --from=build /tmp/kong-version /tmp/kong-version
 COPY --from=build /tmp/build /tmp/build
 COPY /fpm /fpm
@@ -28,7 +34,6 @@ ENV OPERATING_SYSTEM_VERSION=${OPERATING_SYSTEM_VERSION}
 
 WORKDIR /fpm
 RUN ./package.sh
-
 
 # Copy the build result to scratch so we can export the result
 FROM scratch AS package
