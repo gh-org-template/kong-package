@@ -40,7 +40,7 @@
       name: Create Release Artifacts
       strategy:
         matrix:
-          architecture: [{cpu: x86_64, docker: amd64}]
+          architecture: [{cpu: x86_64, docker: amd64},{cpu: aarch64, docker: arm64}]
           os: [{os: debian, version: 12, ostype: linux-gnu}, {os: ubuntu, version: 22.04, ostype: linux-gnu}, {os: alpine, version: 3, ostype: linux-gnu}, {os: amazonlinux, version: 2022, ostype: linux-gnu}]
       runs-on: ubuntu-latest
       steps:
