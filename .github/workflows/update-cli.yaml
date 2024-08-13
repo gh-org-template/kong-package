@@ -1,0 +1,52 @@
+name: Update Dockerfile Base Image
+
+on:
+  workflow_dispatch:  # Allows manual triggering of the workflow
+  push:
+    branches:
+      - chore/refactor-image
+  schedule:
+    - cron: '0 0 * * 1'  # Runs every Monday at 00:00 UTC
+
+jobs:
+  update-dockerfile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Set up Node.js (for Updatecli)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Ensure you have the right version if Updatecli needs Node.js
+
+      - name: Install Updatecli
+        run: |
+          curl -LO https://github.com/updatecli/updatecli/releases/latest/download/updatecli_Linux_x86_64.tar.gz
+          tar -xzvf updatecli_Linux_x86_64.tar.gz -C /usr/local/bin
+
+      - name: Run Updatecli to update Dockerfile
+        env:
+          UPDATECLI_GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          UPDATECLI_GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          updatecli diff --config manifest.yaml
+          updatecli apply --config manifest.yaml
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "chore(deps): update Dockerfile base image"
+          branch: "update-dockerfile-base-image"
+          title: "chore(deps): Update Dockerfile Base Image"
+          body: "This PR updates the Dockerfile base image to the latest version."
+          labels: "auto-update"
