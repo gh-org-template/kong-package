@@ -1,0 +1,21 @@
+additional:
+  - "kong-openssl"
+  - "kong-runtime"
+  - "kong-development"
+  - "kong-package"
+  - "multi-arch-fpm"
+
+files:
+  - "!.gitignore"
+  - "!.github/template-sync.yml"
+  - "!.pre-commit-config.yaml"
+  - "!Makefile"
+  - "!.github/dependabot.yml"
+  - "!.github/workflows/sync.yaml"
+  - "!.github/workflows/release.yml"
+  - "!.releaserc"
+  - "!build.sh"
+  - "!test.sh"
+  - "!.env"
+  - "!Dockerfile"
+  - "!manifest.yaml"

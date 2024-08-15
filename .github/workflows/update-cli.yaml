@@ -1,0 +1,35 @@
+name: Update Dockerfile Base Image
+
+on:
+  push:
+    branches:
+    - main
+  workflow_dispatch:  # Allows manual triggering of the workflow
+  schedule:
+    - cron: '0 0 * * 1'  # Runs every Monday at 00:00 UTC
+
+jobs:
+  update-dockerfile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (for Updatecli)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Ensure you have the right version if Updatecli needs Node.js
+
+      - name: Install Updatecli
+        run: |
+          curl -LO https://github.com/updatecli/updatecli/releases/latest/download/updatecli_Linux_x86_64.tar.gz
+          tar -xzvf updatecli_Linux_x86_64.tar.gz -C /usr/local/bin
+
+      - name: Run Updatecli to update Dockerfile
+        env:
+          UPDATECLI_GITHUB_TOKEN: ${{ secrets.UPDATE_CLI_PR }}
+          UPDATECLI_GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          updatecli diff --config manifest.yaml
+          updatecli apply --config manifest.yaml

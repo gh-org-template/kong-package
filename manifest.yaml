@@ -1,0 +1,46 @@
+scms:
+  templateRepo:
+    kind: "github"
+    spec:
+      user: '{{ requiredEnv "UPDATECLI_GITHUB_ACTOR" }}'
+      email: "chutchic@gmail.com"
+      owner: "gh-org-template"
+      repository: "template-1-github-release"
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "UPDATECLI_GITHUB_ACTOR" }}'
+      branch: "main"
+
+sources:
+  kbiLatestVersion:
+    name: Get latest release
+    kind: githubrelease
+    spec:
+      owner: gh-org-template
+      repository: kong-build-images
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "UPDATECLI_GITHUB_ACTOR" }}'
+
+targets:
+  updateBaseDockerVersion:
+    name: "Update base image"
+    sourceid: kbiLatestVersion
+    kind: dockerfile
+    spec:
+      files:
+        - Dockerfile
+      instruction:
+        keyword: "ARG"
+        matcher: "VERSION"
+    scmid: templateRepo
+
+actions:
+  createPullRequest:
+    kind: "github/pullrequest"
+    scmid: templateRepo
+    spec:
+      title: "chore: Update Dockerfile base image to latest version"
+      description: "This PR updates the Dockerfile base image to the latest version of kong-build-images."
+      labels:
+        - "auto-update"
+      automerge: true
+      draft: false
