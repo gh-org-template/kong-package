@@ -33,3 +33,14 @@ jobs:
         run: |
           updatecli diff --config manifest.yaml
           updatecli apply --config manifest.yaml
+          rm -rf updatecli*.tar.gz
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.UPDATE_CLI_PR }}
+          commit-message: "chore(deps): update dependencies per updatecli / manifest.yaml"
+          branch: "chore/deps-updatecli"
+          title: "chore(deps): Update Dependencies per updatecli"
+          body: "This PR updates the dependencies per the updatecli manifest.yaml file"
+          labels: "auto-update"
