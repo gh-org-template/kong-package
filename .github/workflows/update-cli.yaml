@@ -54,12 +54,14 @@ jobs:
           labels: "auto-update"
 
       - name: Approve PR
+        if: ${{ steps.cpr.outputs.pull-request-url != '' }}
         run: gh pr review --approve "$PR_URL"
         env:
           PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
 
       - name: Enable auto-merge
+        if: ${{ steps.cpr.outputs.pull-request-url != '' }}
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
