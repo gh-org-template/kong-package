@@ -6,7 +6,7 @@ on:
     - main
   workflow_dispatch:  # Allows manual triggering of the workflow
   schedule:
-    - cron: '0 0 * * 1'  # Runs every Monday at 00:00 UTC
+    - cron: '0 0 * * *'
 
 jobs:
   update-dockerfile:
@@ -43,6 +43,7 @@ jobs:
           rm -rf updatecli*.tar.gz
 
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.app-token.outputs.token }}
@@ -51,3 +52,15 @@ jobs:
           title: "chore(deps): Update Dependencies per updatecli"
           body: "This PR updates the dependencies per the updatecli manifest.yaml file"
           labels: "auto-update"
+
+      - name: Approve PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
