@@ -75,9 +75,16 @@
           files: package/*
 
     done:
-      needs: [artifacts]
+      needs: [release, artifacts]
       name: Done
-      if: needs.artifacts.result == 'success'
+      if: always()
       runs-on: ubuntu-latest
       steps:
-      - run: echo 'done'
+      - name: Check for Failed Jobs
+        run: |
+          if [[ "${{ needs.release.result }}" == "failure" || "${{ needs.artifacts.result }}" == "failure" ]]; then
+            echo "One or more jobs failed. Marking release as failed."
+            exit 1
+          else
+            echo "All jobs succeeded or were skipped. Marking release as successful."
+          fi
