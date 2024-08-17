@@ -15,6 +15,21 @@ sources:
       repository: multi-arch-fpm
       token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
       username: '{{ requiredEnv "UPDATECLI_GITHUB_ACTOR" }}'
+
+conditions:
+  kongImage:
+    name: Make sure the image has been published
+    sourceid: kongLatestVersion
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/gh-org-template/kong-development"
+  fpmImage:
+    name: Make sure the image has been published
+    sourceid: fpmLatestVersion
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/gh-org-template/multi-arch-fpm"
+
 targets:
   updateKongDockerVersion:
     name: "Update base image"
