@@ -4,9 +4,11 @@ on:
   push:
     branches:
     - main
-  workflow_dispatch:  # Allows manual triggering of the workflow
+  workflow_dispatch:
+  repository_dispatch:
+    types: [update-required]
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * 0'
 
 jobs:
   update-dockerfile:
@@ -38,9 +40,10 @@ jobs:
           UPDATECLI_GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           UPDATECLI_GITHUB_ACTOR: ${{ github.actor }}
         run: |
-          updatecli diff --config manifest.yaml
-          updatecli apply --config manifest.yaml
-          rm -rf updatecli*.tar.gz
+          for file in manifest.*.yaml; do
+            updatecli diff --config "$file"
+            updatecli apply --config "$file"
+          done
 
       - name: Create Pull Request
         id: cpr
