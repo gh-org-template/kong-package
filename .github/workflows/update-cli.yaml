@@ -40,7 +40,7 @@ jobs:
           UPDATECLI_GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           UPDATECLI_GITHUB_ACTOR: ${{ github.actor }}
         run: |
-          for file in manifest.*.yaml; do
+          for file in manifest*.yaml; do
             updatecli diff --config "$file"
             updatecli apply --config "$file"
           done
