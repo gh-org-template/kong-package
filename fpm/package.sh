@@ -48,12 +48,6 @@ function main {
     if [ "$OPERATING_SYSTEM" == "amazonlinux" ]; then
       PACKAGE_SUFFIX=".aws"
       FPM_PARAMS="${FPM_PARAMS} -d /usr/sbin/useradd -d /usr/sbin/groupadd"
-      if [ "$OPERATING_SYSTEM_VERSION" == "2022" ]; then
-        FPM_PARAMS="${FPM_PARAMS} -d libxcrypt-compat"
-      fi
-    fi
-    if [ "$OPERATING_SYSTEM" == "centos" ]; then
-      PACKAGE_SUFFIX=".el${OPERATING_SYSTEM_VERSION}"
     fi
   fi
 
