@@ -1,12 +1,4 @@
 sources:
-  kongLatestVersion:
-    name: Get latest release
-    kind: githubrelease
-    spec:
-      owner: gh-org-template
-      repository: kong-development
-      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
-      username: '{{ requiredEnv "UPDATECLI_GITHUB_ACTOR" }}'
   fpmLatestVersion:
     name: Get latest release
     kind: githubrelease
@@ -17,12 +9,6 @@ sources:
       username: '{{ requiredEnv "UPDATECLI_GITHUB_ACTOR" }}'
 
 conditions:
-  kongImage:
-    name: Make sure the image has been published
-    sourceid: kongLatestVersion
-    kind: dockerimage
-    spec:
-      image: "ghcr.io/gh-org-template/kong-development"
   fpmImage:
     name: Make sure the image has been published
     sourceid: fpmLatestVersion
@@ -31,16 +17,6 @@ conditions:
       image: "ghcr.io/gh-org-template/multi-arch-fpm"
 
 targets:
-  updateKongDockerVersion:
-    name: "Update base image"
-    sourceid: kongLatestVersion
-    kind: dockerfile
-    spec:
-      files:
-        - Dockerfile
-      instruction:
-        keyword: "ARG"
-        matcher: "KONG_DEVELOPMENT_VERSION"
   updateFpmDockerVersion:
     name: "Update base image"
     sourceid: fpmLatestVersion
