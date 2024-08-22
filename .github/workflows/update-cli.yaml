@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - main
+    - fix/update-multiple-images
   workflow_dispatch:
   repository_dispatch:
     types: [update-required]
