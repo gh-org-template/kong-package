@@ -45,6 +45,7 @@ function main {
     FPM_PARAMS="${FPM_PARAMS} -d libxcrypt-compat"
   fi
 
+  PACKAGE_SUFFIX=""
   if [ "$PACKAGE_TYPE" == "apk" ]; then
     PACKAGE_SUFFIX=".${TARGETARCH}.apk"
     pushd /tmp/build
