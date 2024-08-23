@@ -61,6 +61,7 @@
           grep -v '^#' .env >> $GITHUB_ENV
           echo "PACKAGE_TYPE=${{ matrix.package_type }}" >> $GITHUB_ENV
           echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+          echo "ARCHITECTURE=${{ matrix.architecture.cpu }}" >> $GITHUB_ENV
       - name: Build and Package
         run: make package
       - name: Test the Package
