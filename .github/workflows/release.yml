@@ -41,7 +41,7 @@
       strategy:
         matrix:
           architecture: [{cpu: x86_64, docker: amd64},{cpu: aarch64, docker: arm64}]
-          os: [{os: debian, version: 12, ostype: linux-gnu}, {os: ubuntu, version: 22.04, ostype: linux-gnu}, {os: alpine, version: 3, ostype: linux-gnu}, {os: amazonlinux, version: 2022, ostype: linux-gnu}]
+          os: [{os: debian, version: 12, ostype: linux-gnu, package_type: deb}, {os: ubuntu, version: 22.04, ostype: linux-gnu, package_type: deb}, {os: alpine, version: 3, ostype: linux-gnu, package_type: apk}, {os: amazonlinux, version: 2022, ostype: linux-gnu, package_type: rpm}]
       runs-on: ubuntu-latest
       steps:
       - uses: actions/create-github-app-token@v1
@@ -60,6 +60,7 @@
         run: |
           grep -v '^#' .env >> $GITHUB_ENV
           echo "ARCHITECTURE=${{ matrix.architecture.cpu }}" >> $GITHUB_ENV
+          echo "PACKAGE_TYPE=${{ matrix.os.package_type }}" >> $GITHUB_ENV
           echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
           echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
           echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
