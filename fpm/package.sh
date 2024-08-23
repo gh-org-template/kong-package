@@ -38,14 +38,22 @@ function main {
   fi
 
   FPM_PARAMS=
-  PACKAGE_SUFFIX=""
   if [ "$PACKAGE_TYPE" == "deb" ]; then
     FPM_PARAMS="-d libpcre3 -d perl -d zlib1g-dev -d unzip"
+    PACKAGE_SUFFIX="-${OPERATING_SYSTEM}-${OPERATING_SYSTEM_VERSION}"
   elif [ "$PACKAGE_TYPE" == "rpm" ]; then
-    FPM_PARAMS="-d pcre -d perl -d perl-Time-HiRes -d zlib -d zlib-devel -d unzip -d hostname"
+    FPM_PARAMS="-d pcre -d perl -d perl-Time-HiRes -d zlib -d zlib-devel -d unzip"
+    PACKAGE_SUFFIX=".rhel${OPERATING_SYSTEM_VERSION}"
+    FPM_PARAMS="${FPM_PARAMS} -d hostname"
     if [ "$OPERATING_SYSTEM" == "amazonlinux" ]; then
       PACKAGE_SUFFIX=".aws"
       FPM_PARAMS="${FPM_PARAMS} -d /usr/sbin/useradd -d /usr/sbin/groupadd"
+      if [ "$OPERATING_SYSTEM_VERSION" == "2022" ]; then
+        FPM_PARAMS="${FPM_PARAMS} -d libxcrypt-compat"
+      fi
+    fi
+    if [ "$OPERATING_SYSTEM" == "centos" ]; then
+      PACKAGE_SUFFIX=".el${OPERATING_SYSTEM_VERSION}"
     fi
   fi
 
