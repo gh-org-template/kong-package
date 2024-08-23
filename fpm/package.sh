@@ -27,8 +27,6 @@ function main {
     # Fallback if the file is not found or empty
     KONG_VERSION=${KONG_VERSION:=3.0.1}
   fi
-  OPERATING_SYSTEM=${OPERATING_SYSTEM:=ubuntu}
-  OPERATING_SYSTEM_VERSION=${OPERATING_SYSTEM_VERSION:=22.04}
   ARCHITECTURE=${ARCHITECTURE:=x86_64}
   TARGETARCH="amd64"
   if [ "${ARCHITECTURE}" == "x86_64" ]; then
@@ -43,18 +41,9 @@ function main {
     PACKAGE_SUFFIX="-${OPERATING_SYSTEM}-${OPERATING_SYSTEM_VERSION}"
   elif [ "$PACKAGE_TYPE" == "rpm" ]; then
     FPM_PARAMS="-d pcre -d perl -d perl-Time-HiRes -d zlib -d zlib-devel -d unzip"
-    PACKAGE_SUFFIX=".rhel${OPERATING_SYSTEM_VERSION}"
     FPM_PARAMS="${FPM_PARAMS} -d hostname"
-    if [ "$OPERATING_SYSTEM" == "amazonlinux" ]; then
-      PACKAGE_SUFFIX=".aws"
-      FPM_PARAMS="${FPM_PARAMS} -d /usr/sbin/useradd -d /usr/sbin/groupadd"
-      if [ "$OPERATING_SYSTEM_VERSION" == "2022" ]; then
-        FPM_PARAMS="${FPM_PARAMS} -d libxcrypt-compat"
-      fi
-    fi
-    if [ "$OPERATING_SYSTEM" == "centos" ]; then
-      PACKAGE_SUFFIX=".el${OPERATING_SYSTEM_VERSION}"
-    fi
+    FPM_PARAMS="${FPM_PARAMS} -d /usr/sbin/useradd -d /usr/sbin/groupadd"
+    FPM_PARAMS="${FPM_PARAMS} -d libxcrypt-compat"
   fi
 
   if [ "$PACKAGE_TYPE" == "apk" ]; then
