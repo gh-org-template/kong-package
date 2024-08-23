@@ -38,7 +38,6 @@ function main {
   FPM_PARAMS=
   if [ "$PACKAGE_TYPE" == "deb" ]; then
     FPM_PARAMS="-d libpcre3 -d perl -d zlib1g-dev -d unzip"
-    PACKAGE_SUFFIX="-${OPERATING_SYSTEM}-${OPERATING_SYSTEM_VERSION}"
   elif [ "$PACKAGE_TYPE" == "rpm" ]; then
     FPM_PARAMS="-d pcre -d perl -d perl-Time-HiRes -d zlib -d zlib-devel -d unzip"
     FPM_PARAMS="${FPM_PARAMS} -d hostname"
@@ -46,6 +45,7 @@ function main {
     FPM_PARAMS="${FPM_PARAMS} -d libxcrypt-compat"
   fi
 
+  PACKAGE_SUFFIX=""
   if [ "$PACKAGE_TYPE" == "apk" ]; then
     PACKAGE_SUFFIX=".${TARGETARCH}.apk"
     pushd /tmp/build
