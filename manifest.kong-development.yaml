@@ -1,5 +1,5 @@
 sources:
-  kongLatestVersion:
+  kong-development-latest:
     name: Get latest release
     kind: githubrelease
     spec:
@@ -9,17 +9,17 @@ sources:
       username: '{{ requiredEnv "UPDATECLI_GITHUB_ACTOR" }}'
 
 conditions:
-  kongImage:
+  ghcr:
     name: Make sure the image has been published
-    sourceid: kongLatestVersion
+    sourceid: kong-development-latest
     kind: dockerimage
     spec:
       image: "ghcr.io/gh-org-template/kong-development"
 
 targets:
-  updateKongDockerVersion:
+  kong-development-latest-docker:
     name: "Update base image"
-    sourceid: kongLatestVersion
+    sourceid: kong-development-latest
     kind: dockerfile
     spec:
       files:
@@ -27,3 +27,10 @@ targets:
       instruction:
         keyword: "ARG"
         matcher: "KONG_DEVELOPMENT_VERSION"
+  kong-development-env-file:
+    name: "Copy the kong-development env file"
+    sourceid: kong-development-latest
+    kind: shell
+    spec:
+      command: |
+        rm .env && wget https://raw.githubusercontent.com/gh-org-template/kong-development/{{ source "kong-development-latest" }}/.env && exit 0
