@@ -7,20 +7,10 @@ DOCKER_NAME ?= $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 DOCKER_RESULT ?= --load
 PACKAGE_TYPE ?= deb
 
-ifeq ($(OPERATING_SYSTEM),alpine)
+ifeq ($(PACKAGE_TYPE),apk)
 	OSTYPE?=linux-musl
 else
 	OSTYPE?=linux-gnu
-endif
-
-ifeq ($(OPERATING_SYSTEM),rhel)
-	PACKAGE_TYPE=rpm
-else ifeq ($(OPERATING_SYSTEM),amazonlinux)
-	PACKAGE_TYPE=rpm
-else ifeq ($(OPERATING_SYSTEM),alpine)
-	PACKAGE_TYPE=apk
-else
-	PACKAGE_TYPE=deb
 endif
 
 ifeq ($(ARCHITECTURE),aarch64)
@@ -43,8 +33,6 @@ docker:
 		--build-arg ARCHITECTURE=$(ARCHITECTURE) \
 		--build-arg OSTYPE=$(OSTYPE) \
 		--build-arg PACKAGE_TYPE=$(PACKAGE_TYPE) \
-		--build-arg OPERATING_SYSTEM=$(OPERATING_SYSTEM) \
-		--build-arg OPERATING_SYSTEM_VERSION=$(OPERATING_SYSTEM_VERSION) \
 		--build-arg DOCKER_ARCHITECTURE=$(DOCKER_ARCHITECTURE) \
 		--target=$(DOCKER_TARGET) \
 		-t $(DOCKER_NAME) \
