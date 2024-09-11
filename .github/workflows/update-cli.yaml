@@ -42,7 +42,7 @@ jobs:
           UPDATECLI_GITHUB_ACTOR: ${{ github.actor }}
         run: |
           for file in manifest*.yaml; do
-            updatecli diff --config "$file"
+            updatecli diff --config "$file" || true
             updatecli apply --config "$file" || true
           done
           rm -rf updatecli*.tar.gz
