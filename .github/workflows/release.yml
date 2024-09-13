@@ -79,6 +79,21 @@
       if: always()
       runs-on: ubuntu-latest
       steps:
+      - uses: actions/create-github-app-token@v1
+        if: ${{ needs.release.result == 'success' }}
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Trigger Update Dockerfile Job on kong-docker Repository
+        if: ${{ needs.release.result == 'success' }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repository: gh-org-template/kong-docker
+          event-type: update-required
+          client-payload: '{"ref":"main"}'
       - name: Check for Failed Jobs
         run: |
           if [[ "${{ needs.release.result }}" == "failure" || "${{ needs.artifacts.result }}" == "failure" ]]; then
