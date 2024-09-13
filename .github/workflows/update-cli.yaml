@@ -42,14 +42,14 @@ jobs:
           UPDATECLI_GITHUB_ACTOR: ${{ github.actor }}
         run: |
           for file in manifest*.yaml; do
-            updatecli diff --config "$file"
-            updatecli apply --config "$file"
+            updatecli diff --config "$file" || true
+            updatecli apply --config "$file" || true
           done
           rm -rf updatecli*.tar.gz
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "chore(deps): update dependencies per updatecli / manifest.yaml"
