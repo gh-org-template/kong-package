@@ -95,7 +95,7 @@ function main() {
       sleep 5
     done
   elif [[ "$PACKAGE_TYPE" == "deb" ]]; then
-    for OS_IMAGE in "ubuntu:22.04" "ubuntu:latest" "debian:12" "debian:latest"; do
+    for OS_IMAGE in "ubuntu:22.04" "ubuntu:latest" "debian:12" "debian:bookworm-20250113"; do
       container_name="package-validation-tests-${OS_IMAGE//[:.]/-}"
 
       docker run -d --rm \
