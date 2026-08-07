@@ -19,7 +19,7 @@
         published: ${{ steps.release.outputs.published }}
         release-git-tag: ${{ steps.release.outputs.release-git-tag }}
       steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ vars.APP_ID }}
@@ -44,7 +44,7 @@
           package_type: [apk, rpm, deb]
       runs-on: ubuntu-latest
       steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ vars.APP_ID }}
@@ -79,7 +79,7 @@
       if: always()
       runs-on: ubuntu-latest
       steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v2
         if: ${{ needs.release.result == 'success' }}
         id: app-token
         with:
